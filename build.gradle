@@ -1,0 +1,36 @@
+plugins {
+    id "application"
+}
+
+group = 'dementiev_a'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    compileOnly 'org.projectlombok:lombok:1.18.40'
+    annotationProcessor 'org.projectlombok:lombok:1.18.40'
+}
+
+apply plugin : "java"
+
+ext {
+    javaMainClass = "dementiev_a.Main"
+}
+
+application {
+    mainClassName = javaMainClass
+}
+
+run {
+    standardInput = System.in
+}
+
+test {
+    useJUnitPlatform()
+}
