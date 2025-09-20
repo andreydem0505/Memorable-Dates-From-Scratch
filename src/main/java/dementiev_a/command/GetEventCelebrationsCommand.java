@@ -35,7 +35,7 @@ public class GetEventCelebrationsCommand extends Command {
             return;
         }
         celebrations.forEach(celebration -> {
-            IO.print("%d) %s (%s) - %s, место: %s".formatted(
+            IO.print("%d. %s (%s) - %s, место: %s".formatted(
                     celebration.getId(),
                     celebration.getName(),
                     DateUtils.formatter.format(celebration.getDate()),

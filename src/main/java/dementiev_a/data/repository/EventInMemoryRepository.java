@@ -10,6 +10,7 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class EventInMemoryRepository implements EventRepository {
@@ -17,10 +18,11 @@ public class EventInMemoryRepository implements EventRepository {
     private static final EventInMemoryRepository instance = new EventInMemoryRepository();
 
     private static final String ENTITY_NAME = "Памятная дата";
+    private static final CelebrationInMemoryRepository celebrationRepository = CelebrationInMemoryRepository
+            .getInstance();
 
     private final Map<Long, Event> storage = new HashMap<>();
     private final EventSequence eventSequence = EventSequence.getInstance();
-    private final CelebrationInMemoryRepository celebrationRepository = CelebrationInMemoryRepository.getInstance();
 
     @Override
     public Event findById(Long id) {
@@ -69,5 +71,12 @@ public class EventInMemoryRepository implements EventRepository {
         }
         Set<Long> celebrationIds = event.getCelebrationIds();
         return celebrationRepository.findAllByIds(celebrationIds);
+    }
+
+    @Override
+    public Set<Event> findByDate(LocalDate date) {
+        return storage.values().stream()
+                .filter(event -> event.getDate().equals(date))
+                .collect(Collectors.toSet());
     }
 }

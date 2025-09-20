@@ -10,6 +10,8 @@ public class CliRunner implements Runner {
             new GetAllEventsCommand(),
             new AddEventCommand(),
             new GetEventCelebrationsCommand(),
+            new AddCelebrationCommand(),
+            new GetEventsByDateCommand(),
             new ExitCommand()
     );
 
@@ -31,6 +33,7 @@ public class CliRunner implements Runner {
                 continue;
             }
             commandsMap.get(command).execute();
+            IO.printEmptyLine();
         }
     }
 

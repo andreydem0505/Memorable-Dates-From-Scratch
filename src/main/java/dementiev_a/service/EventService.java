@@ -23,11 +23,19 @@ public class EventService {
         return new ArrayList<>(eventInMemoryRepository.findAll());
     }
 
+    public Event getEventById(long id) {
+        return eventInMemoryRepository.findById(id);
+    }
+
     public void addEvent(String name, String description, LocalDate date) {
         eventInMemoryRepository.save(name, description, date);
     }
 
     public Set<Celebration> getCelebrationsByEventId(Long eventId) {
         return eventInMemoryRepository.findCelebrationsByEventId(eventId);
+    }
+
+    public Set<Event> getEventsByDate(LocalDate date) {
+        return eventInMemoryRepository.findByDate(date);
     }
 }

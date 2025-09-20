@@ -17,10 +17,10 @@ public class CelebrationInMemoryRepository implements CelebrationRepository {
     private static final CelebrationInMemoryRepository instance = new CelebrationInMemoryRepository();
 
     private static final String ENTITY_NAME = "Отмечание";
+    private static final EventInMemoryRepository eventRepository = EventInMemoryRepository.getInstance();
 
     private final Map<Long, Celebration> storage = new HashMap<>();
     private final CelebrationSequence celebrationSequence = CelebrationSequence.getInstance();
-    private final EventInMemoryRepository eventRepository = EventInMemoryRepository.getInstance();
 
     @Override
     public Celebration findById(Long id) {
@@ -38,10 +38,10 @@ public class CelebrationInMemoryRepository implements CelebrationRepository {
 
     @Override
     public void save(Celebration entity) {
-        storage.put(entity.getId(), entity);
         Event event = eventRepository.findById(entity.getEventId());
         event.addCelebrationId(entity.getId());
         eventRepository.save(event);
+        storage.put(entity.getId(), entity);
     }
 
     @Override

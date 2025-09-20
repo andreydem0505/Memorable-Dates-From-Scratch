@@ -22,7 +22,7 @@ public class GetAllEventsCommand extends Command {
             return;
         }
         events.forEach(event -> {
-            IO.print("%d) %s (%s) - %s".formatted(
+            IO.print("%d. %s (%s) - %s".formatted(
                     event.getId(),
                     event.getName(),
                     DateUtils.formatter.format(event.getDate()),

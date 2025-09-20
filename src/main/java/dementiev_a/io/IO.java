@@ -14,6 +14,10 @@ public class IO {
         System.out.println(message);
     }
 
+    public static void printEmptyLine() {
+        System.out.println();
+    }
+
     public static void printError(String message) {
         System.err.println(message);
     }
