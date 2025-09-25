@@ -2,6 +2,7 @@ package dementiev_a.service;
 
 import dementiev_a.data.model.Celebration;
 import dementiev_a.data.model.Event;
+import dementiev_a.data.repository.CelebrationInMemoryRepository;
 import dementiev_a.data.repository.EventInMemoryRepository;
 import lombok.AccessLevel;
 import lombok.Getter;
@@ -17,25 +18,27 @@ public class EventService {
     @Getter(lazy = true)
     private static final EventService instance = new EventService();
 
-    private final EventInMemoryRepository eventInMemoryRepository = EventInMemoryRepository.getInstance();
+    private final EventInMemoryRepository eventRepository = EventInMemoryRepository.getInstance();
+    private final CelebrationInMemoryRepository celebrationRepository = CelebrationInMemoryRepository.getInstance();
 
     public List<Event> getAllEvents() {
-        return new ArrayList<>(eventInMemoryRepository.findAll());
+        return new ArrayList<>(eventRepository.findAll());
     }
 
     public Event getEventById(long id) {
-        return eventInMemoryRepository.findById(id);
+        return eventRepository.findById(id);
     }
 
-    public void addEvent(String name, String description, LocalDate date) {
-        eventInMemoryRepository.save(name, description, date);
+    public void addEvent(Event event) {
+        eventRepository.save(event);
     }
 
     public Set<Celebration> getCelebrationsByEventId(Long eventId) {
-        return eventInMemoryRepository.findCelebrationsByEventId(eventId);
+        Set<Long> celebrationsIds = eventRepository.findCelebrationsIdsByEventId(eventId);
+        return celebrationRepository.findAllByIds(celebrationsIds);
     }
 
     public Set<Event> getEventsByDate(LocalDate date) {
-        return eventInMemoryRepository.findByDate(date);
+        return eventRepository.findByDate(date);
     }
 }

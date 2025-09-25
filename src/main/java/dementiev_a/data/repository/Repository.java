@@ -4,10 +4,10 @@ import dementiev_a.data.model.Model;
 
 import java.util.Collection;
 
-public interface Repository<M extends Model<I>, I> {
-    M findById(I id);
+public interface Repository<M extends Model<ID>, ID> {
+    M findById(ID id);
     Collection<M> findAll();
-    void save(M entity);
-    void deleteById(I id);
+    ID save(M entity);
+    void deleteById(ID id);
     void deleteAll();
 }

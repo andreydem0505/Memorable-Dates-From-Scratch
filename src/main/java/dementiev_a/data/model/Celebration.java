@@ -12,8 +12,7 @@ public class Celebration extends Model<Long> {
     private LocalDate date;
     private String place;
 
-    public Celebration(Long id, long eventId, String name, String description, LocalDate date, String place) {
-        super(id);
+    public Celebration(long eventId, String name, String description, LocalDate date, String place) {
         this.eventId = eventId;
         this.name = name;
         this.description = description;

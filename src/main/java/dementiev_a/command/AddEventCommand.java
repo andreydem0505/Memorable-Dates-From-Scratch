@@ -1,5 +1,6 @@
 package dementiev_a.command;
 
+import dementiev_a.data.model.Event;
 import dementiev_a.io.IO;
 import dementiev_a.service.EventService;
 import dementiev_a.utils.DateUtils;
@@ -23,7 +24,7 @@ public class AddEventCommand extends Command {
                     IO.readLine("Введите дату (в формате 12.05.2007):"),
                     DateUtils.formatter
             );
-            EventService.getInstance().addEvent(name, description, date);
+            EventService.getInstance().addEvent(new Event(name, description, date));
             IO.print("Памятная дата успешно добавлена");
         } catch (DateTimeParseException e) {
             IO.printError("Неверный формат даты");

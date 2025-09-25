@@ -1,14 +1,12 @@
 package dementiev_a.data.repository;
 
 import dementiev_a.data.model.Celebration;
-import dementiev_a.data.model.Event;
 import dementiev_a.data.sequence.CelebrationSequence;
 import dementiev_a.exception.NoEntityException;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDate;
 import java.util.*;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
@@ -17,7 +15,6 @@ public class CelebrationInMemoryRepository implements CelebrationRepository {
     private static final CelebrationInMemoryRepository instance = new CelebrationInMemoryRepository();
 
     private static final String ENTITY_NAME = "Отмечание";
-    private static final EventInMemoryRepository eventRepository = EventInMemoryRepository.getInstance();
 
     private final Map<Long, Celebration> storage = new HashMap<>();
     private final CelebrationSequence celebrationSequence = CelebrationSequence.getInstance();
@@ -37,11 +34,12 @@ public class CelebrationInMemoryRepository implements CelebrationRepository {
     }
 
     @Override
-    public void save(Celebration entity) {
-        Event event = eventRepository.findById(entity.getEventId());
-        event.addCelebrationId(entity.getId());
-        eventRepository.save(event);
+    public Long save(Celebration entity) {
+        if (entity.getId() == null) {
+            entity.setId(celebrationSequence.next());
+        }
         storage.put(entity.getId(), entity);
+        return entity.getId();
     }
 
     @Override
@@ -55,16 +53,6 @@ public class CelebrationInMemoryRepository implements CelebrationRepository {
     @Override
     public void deleteAll() {
         storage.clear();
-    }
-
-    @Override
-    public void save(long eventId, String name, String description, LocalDate date, String place) {
-        save(new Celebration(celebrationSequence.next(), eventId, name, description, date, place));
-    }
-
-    @Override
-    public void deleteByIds(Collection<Long> ids) {
-        ids.forEach(storage::remove);
     }
 
     @Override

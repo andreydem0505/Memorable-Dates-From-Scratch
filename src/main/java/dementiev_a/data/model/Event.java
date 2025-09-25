@@ -13,8 +13,7 @@ public class Event extends Model<Long> {
     private LocalDate date;
     private Set<Long> celebrationIds = new HashSet<>();
 
-    public Event(Long id, String name, String description, LocalDate date) {
-        super(id);
+    public Event(String name, String description, LocalDate date) {
         this.name = name;
         this.description = description;
         this.date = date;
