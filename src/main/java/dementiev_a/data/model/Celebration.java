@@ -1,10 +1,12 @@
 package dementiev_a.data.model;
 
 import lombok.Getter;
+import lombok.Setter;
 
 import java.time.LocalDate;
 
 @Getter
+@Setter
 public class Celebration extends Model<Long> {
     private long eventId;
     private String name;

@@ -11,7 +11,7 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDate;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class CelebrationService {
+public class CelebrationService implements Service {
     @Getter(lazy = true)
     private static final CelebrationService instance = new CelebrationService();
 
@@ -23,5 +23,24 @@ public class CelebrationService {
         Event event = eventRepository.findById(eventId);
         event.addCelebrationId(celebrationId);
         eventRepository.save(event);
+    }
+
+    public Celebration getCelebrationById(long celebrationId) {
+        return celebrationRepository.findById(celebrationId);
+    }
+
+    public void deleteCelebrationById(Long id) {
+        long eventId = celebrationRepository.findById(id).getEventId();
+        eventRepository.findById(eventId).getCelebrationIds().remove(id);
+        celebrationRepository.deleteById(id);
+    }
+
+    public void editCelebration(long celebrationId, String name, String description, LocalDate date, String place) {
+        Celebration celebration = celebrationRepository.findById(celebrationId);
+        celebration.setName(name);
+        celebration.setDescription(description);
+        celebration.setDate(date);
+        celebration.setPlace(place);
+        celebrationRepository.save(celebration);
     }
 }

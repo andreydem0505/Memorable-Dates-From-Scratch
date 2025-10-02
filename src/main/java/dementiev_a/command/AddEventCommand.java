@@ -8,26 +8,26 @@ import dementiev_a.utils.DateUtils;
 import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 
-public class AddEventCommand extends Command {
+public class AddEventCommand implements Command {
 
     @Override
     public String getName() {
-        return "Добавить памятную дату";
+        return "Add event";
     }
 
     @Override
     public void execute() {
-        String name = IO.readLine("Введите название памятной даты:");
-        String description = IO.readLine("Введите описание памятной даты:");
+        String name = IO.readLine("Input event title:");
+        String description = IO.readLine("Input description:");
         try {
             LocalDate date = LocalDate.parse(
-                    IO.readLine("Введите дату (в формате 12.05.2007):"),
+                    IO.readLine("Input date (in format of 12.05.2007):"),
                     DateUtils.formatter
             );
             EventService.getInstance().addEvent(new Event(name, description, date));
-            IO.print("Памятная дата успешно добавлена");
+            IO.print("Event was successfully added");
         } catch (DateTimeParseException e) {
-            IO.printError("Неверный формат даты");
+            IO.printError("Wrong date format");
         }
     }
 }

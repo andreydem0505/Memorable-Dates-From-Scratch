@@ -1,9 +1,9 @@
 package dementiev_a.command;
 
-public class ExitCommand extends Command {
+public class ExitCommand implements Command {
     @Override
     public String getName() {
-        return "Выйти";
+        return "Exit";
     }
 
     @Override

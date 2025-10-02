@@ -1,9 +1,8 @@
-### Запуск для Windows:
+### Launch on Windows:
 ```
-chcp 65001
 gradlew run
 ```
-### Запуск тестов:
+### Tests launch:
 ```
 gradlew clean test
 ```

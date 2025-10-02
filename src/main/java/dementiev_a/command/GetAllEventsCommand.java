@@ -7,18 +7,18 @@ import dementiev_a.utils.DateUtils;
 
 import java.util.List;
 
-public class GetAllEventsCommand extends Command {
+public class GetAllEventsCommand implements Command {
 
     @Override
     public String getName() {
-        return "Получить все памятные даты";
+        return "Get all events";
     }
 
     @Override
     public void execute() {
         List<Event> events = EventService.getInstance().getAllEvents();
         if (events.isEmpty()) {
-            IO.print("Нет памятных дат");
+            IO.print("No events found");
             return;
         }
         events.forEach(event -> {

@@ -12,6 +12,10 @@ public class CliRunner implements Runner {
             new GetEventCelebrationsCommand(),
             new AddCelebrationCommand(),
             new GetEventsByDateCommand(),
+            new EditEventCommand(),
+            new EditCelebrationCommand(),
+            new DeleteEventCommand(),
+            new DeleteCelebrationCommand(),
             new ExitCommand()
     );
 
@@ -45,14 +49,14 @@ public class CliRunner implements Runner {
 
     private Integer chooseCommand() {
         try {
-            Integer input = Integer.parseInt(IO.readLine("Выберите команду:"));
+            Integer input = Integer.parseInt(IO.readLine("Choose command:"));
             if (!commandsMap.containsKey(input)) {
-                IO.printError("Нет такой команды");
+                IO.printError("No such command");
                 return null;
             }
             return input;
         } catch (NumberFormatException e) {
-            IO.printError("Неверный формат ввода");
+            IO.printError("Wrong input format");
         }
         return null;
     }

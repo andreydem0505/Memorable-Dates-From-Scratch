@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Set;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
-public class EventService {
+public class EventService implements Service {
     @Getter(lazy = true)
     private static final EventService instance = new EventService();
 
@@ -40,5 +40,18 @@ public class EventService {
 
     public Set<Event> getEventsByDate(LocalDate date) {
         return eventRepository.findByDate(date);
+    }
+
+    public void deleteEventById(long id) {
+        eventRepository.findById(id).getCelebrationIds().forEach(celebrationRepository::deleteById);
+        eventRepository.deleteById(id);
+    }
+
+    public void editEvent(long eventId, String name, String description, LocalDate date) {
+        Event event = eventRepository.findById(eventId);
+        event.setName(name);
+        event.setDescription(description);
+        event.setDate(date);
+        eventRepository.save(event);
     }
 }

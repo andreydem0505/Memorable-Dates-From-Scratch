@@ -118,4 +118,72 @@ public class CelebrationServiceTest {
         assertEquals("Private Room", stored.getPlace(),
                 "Stored celebration place should match the one supplied to the service");
     }
+
+    @Test
+    void testGetCelebrationById_WhenExists_ThenReturnCelebration() {
+        Event gala = new Event("Gala", "Charity gala event", LocalDate.of(2025, 11, 15));
+        Long eventId = eventRepository.save(gala);
+
+        celebrationService.addCelebration(eventId, "Pre-Gala Reception",
+                "Reception before the gala", LocalDate.of(2025, 11, 15), "Reception Hall");
+
+        Celebration stored = celebrationRepository.findAll().iterator().next();
+        Celebration fetched = celebrationService.getCelebrationById(stored.getId());
+
+        assertSame(stored, fetched,
+                "getCelebrationById should return the same Celebration instance stored in repository");
+    }
+
+    @Test
+    void testDeleteCelebrationById_WhenExists_ThenRemovedAndUnlinkedFromEvent() {
+        Event seminar = new Event("Seminar", "Educational seminar", LocalDate.of(2025, 3, 10));
+        Long eventId = eventRepository.save(seminar);
+
+        celebrationService.addCelebration(eventId, "Coffee Break",
+                "Short coffee break", LocalDate.of(2025, 3, 10), "Lobby");
+
+        Celebration stored = celebrationRepository.findAll().iterator().next();
+        Long celebrationId = stored.getId();
+
+        // Ensure event is linked before deletion
+        Event beforeDeletion = eventRepository.findById(eventId);
+        assertTrue(beforeDeletion.getCelebrationIds().contains(celebrationId),
+                "Event must contain the celebration id before deletion");
+
+        celebrationService.deleteCelebrationById(celebrationId);
+
+        // After deletion, celebration must be removed and event must not reference it
+        assertThrows(NoEntityException.class,
+                () -> celebrationRepository.findById(celebrationId),
+                "After deleteCelebrationById, finding celebration by id should throw NoEntityException");
+
+        Event afterDeletion = eventRepository.findById(eventId);
+        assertFalse(afterDeletion.getCelebrationIds().contains(celebrationId),
+                "After deleting a celebration, the event's celebrationIds must not contain the deleted id");
+    }
+
+    @Test
+    void testEditCelebration_WhenValidFields_ThenUpdatedInRepository() {
+        Event workshop = new Event("Workshop", "Hands-on workshop", LocalDate.of(2025, 4, 20));
+        Long eventId = eventRepository.save(workshop);
+
+        celebrationService.addCelebration(eventId, "Lunch Session",
+                "Casual lunch", LocalDate.of(2025, 4, 20), "Cafeteria");
+
+        Celebration stored = celebrationRepository.findAll().iterator().next();
+        Long celebrationId = stored.getId();
+
+        celebrationService.editCelebration(celebrationId, "Lunch Networking",
+                "Networking during lunch", LocalDate.of(2025, 4, 20), "Conference Room");
+
+        Celebration updated = celebrationRepository.findById(celebrationId);
+        assertEquals("Lunch Networking", updated.getName(),
+                "After editCelebration, celebration name should be updated in repository");
+        assertEquals("Networking during lunch", updated.getDescription(),
+                "After editCelebration, celebration description should be updated in repository");
+        assertEquals(LocalDate.of(2025, 4, 20), updated.getDate(),
+                "After editCelebration, celebration date should be updated in repository");
+        assertEquals("Conference Room", updated.getPlace(),
+                "After editCelebration, celebration place should be updated in repository");
+    }
 }

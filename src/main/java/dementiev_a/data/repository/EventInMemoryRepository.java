@@ -13,10 +13,10 @@ import java.util.stream.Collectors;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class EventInMemoryRepository implements EventRepository {
-    @Getter
+    @Getter(lazy = true)
     private static final EventInMemoryRepository instance = new EventInMemoryRepository();
 
-    private static final String ENTITY_NAME = "Памятная дата";
+    private static final String ENTITY_NAME = "Event";
 
     private final Map<Long, Event> storage = new HashMap<>();
     private final EventSequence eventSequence = EventSequence.getInstance();

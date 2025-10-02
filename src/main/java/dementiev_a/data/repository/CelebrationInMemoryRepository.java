@@ -11,10 +11,10 @@ import java.util.*;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CelebrationInMemoryRepository implements CelebrationRepository {
-    @Getter
+    @Getter(lazy = true)
     private static final CelebrationInMemoryRepository instance = new CelebrationInMemoryRepository();
 
-    private static final String ENTITY_NAME = "Отмечание";
+    private static final String ENTITY_NAME = "Celebration";
 
     private final Map<Long, Celebration> storage = new HashMap<>();
     private final CelebrationSequence celebrationSequence = CelebrationSequence.getInstance();
