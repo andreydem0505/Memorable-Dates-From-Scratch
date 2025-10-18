@@ -21,6 +21,14 @@ public class Event extends Model<Long> {
         this.date = date;
     }
 
+    public Event(Long id, String name, String description, LocalDate date, Set<Long> celebrationIds) {
+        this.setId(id);
+        this.name = name;
+        this.description = description;
+        this.date = date;
+        this.celebrationIds = celebrationIds;
+    }
+
     public void addCelebrationId(Long celebrationId) {
         this.celebrationIds.add(celebrationId);
     }

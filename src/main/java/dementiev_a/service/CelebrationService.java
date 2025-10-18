@@ -31,7 +31,9 @@ public class CelebrationService implements Service {
 
     public void deleteCelebrationById(Long id) {
         long eventId = celebrationRepository.findById(id).getEventId();
-        eventRepository.findById(eventId).getCelebrationIds().remove(id);
+        Event event = eventRepository.findById(eventId);
+        event.getCelebrationIds().remove(id);
+        eventRepository.save(event);
         celebrationRepository.deleteById(id);
     }
 

@@ -29,8 +29,8 @@ public class CelebrationInMemoryRepository implements CelebrationRepository {
     }
 
     @Override
-    public Collection<Celebration> findAll() {
-        return storage.values();
+    public Set<Celebration> findAll() {
+        return new HashSet<>(storage.values());
     }
 
     @Override
@@ -44,10 +44,7 @@ public class CelebrationInMemoryRepository implements CelebrationRepository {
 
     @Override
     public void deleteById(Long id) {
-        if (!storage.containsKey(id)) {
-            throw new NoEntityException(ENTITY_NAME, String.valueOf(id));
-        }
-        storage.remove(id);
+        remove(id);
     }
 
     @Override
@@ -64,5 +61,17 @@ public class CelebrationInMemoryRepository implements CelebrationRepository {
             }
         });
         return result;
+    }
+
+    @Override
+    public void deleteAllByIds(Collection<Long> ids) {
+        ids.forEach(this::remove);
+    }
+
+    private void remove(long id) {
+        if (!storage.containsKey(id)) {
+            throw new NoEntityException(ENTITY_NAME, String.valueOf(id));
+        }
+        storage.remove(id);
     }
 }

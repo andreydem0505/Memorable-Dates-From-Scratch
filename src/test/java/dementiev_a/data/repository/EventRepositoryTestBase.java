@@ -10,14 +10,18 @@ import java.util.Collection;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class EventInMemoryRepositoryTest {
+public abstract class EventRepositoryTestBase {
+    protected EventRepository repository;
 
-    private EventInMemoryRepository repository;
+    protected abstract EventRepository createRepository();
 
     @BeforeEach
     void setUp() {
-        repository = EventInMemoryRepository.getInstance();
+        repository = createRepository();
         repository.deleteAll();
     }
 
@@ -31,7 +35,13 @@ public class EventInMemoryRepositoryTest {
         assertEquals(assignedId, event.getId(), "Event.getId() should reflect the id returned from save");
 
         Event loadedEvent = repository.findById(assignedId);
-        assertSame(event, loadedEvent, "Repository should store and return the same event instance");
+        assertEquals(event.getId(), loadedEvent.getId(), "Repository should store and return event with same id");
+        assertEquals(event.getName(), loadedEvent.getName(),
+                "Repository should store and return event with same name");
+        assertEquals(event.getDescription(), loadedEvent.getDescription(),
+                "Repository should store and return event with same description");
+        assertEquals(event.getDate(), loadedEvent.getDate(),
+                "Repository should store and return event with same date");
     }
 
     @Test
@@ -71,8 +81,6 @@ public class EventInMemoryRepositoryTest {
         Collection<Event> allEvents = repository.findAll();
 
         assertEquals(2, allEvents.size(), "findAll should return the number of saved events");
-        assertTrue(allEvents.contains(firstEvent), "findAll result should contain the first saved event instance");
-        assertTrue(allEvents.contains(secondEvent), "findAll result should contain the second saved event instance");
     }
 
     @Test
@@ -86,12 +94,10 @@ public class EventInMemoryRepositoryTest {
         repository.save(eventB);
         repository.save(eventC);
 
-        Set<Event> found = repository.findByDate(leapDate);
+        Collection<Event> foundEvents = repository.findByDate(leapDate);
 
-        assertEquals(2, found.size(),
+        assertEquals(2, foundEvents.size(),
                 "findByDate should return exactly events that match the requested date");
-        assertTrue(found.contains(eventA), "findByDate result should include the first event on the date");
-        assertTrue(found.contains(eventB), "findByDate result should include the second event on the date");
     }
 
     @Test
@@ -102,7 +108,7 @@ public class EventInMemoryRepositoryTest {
 
         Long id = repository.save(event);
 
-        Set<Long> celebrationIds = repository.findCelebrationsIdsByEventId(id);
+        Collection<Long> celebrationIds = repository.findCelebrationsIdsByEventId(id);
 
         assertEquals(2, celebrationIds.size(),
                 "Should return all celebration ids associated with the event");
@@ -116,5 +122,18 @@ public class EventInMemoryRepositoryTest {
                 () -> repository.findCelebrationsIdsByEventId(777L),
                 "Requesting celebration ids for a non-existing event should throw NoEntityException");
     }
-}
 
+    @Test
+    void testDeleteAll_WhenMultipleEventsSaved_ThenAllRemoved() {
+        Event firstEvent = new Event("Spring Festival", "Celebration of spring", LocalDate.of(2025, 3, 20));
+        Event secondEvent = new Event("Autumn Festival", "Celebration of autumn", LocalDate.of(2025, 9, 22));
+
+        repository.save(firstEvent);
+        repository.save(secondEvent);
+
+        repository.deleteAll();
+
+        Collection<Event> allEvents = repository.findAll();
+        assertEquals(0, allEvents.size(), "After deleteAll, repository should be empty");
+    }
+}

@@ -16,8 +16,6 @@ public class EventInMemoryRepository implements EventRepository {
     @Getter(lazy = true)
     private static final EventInMemoryRepository instance = new EventInMemoryRepository();
 
-    private static final String ENTITY_NAME = "Event";
-
     private final Map<Long, Event> storage = new HashMap<>();
     private final EventSequence eventSequence = EventSequence.getInstance();
 
@@ -31,8 +29,8 @@ public class EventInMemoryRepository implements EventRepository {
     }
 
     @Override
-    public Collection<Event> findAll() {
-        return storage.values();
+    public Set<Event> findAll() {
+        return new HashSet<>(storage.values());
     }
 
     @Override

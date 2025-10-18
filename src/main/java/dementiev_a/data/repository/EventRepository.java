@@ -6,6 +6,7 @@ import java.time.LocalDate;
 import java.util.Set;
 
 public interface EventRepository extends Repository<Event, Long> {
+    String ENTITY_NAME = "Event";
     Set<Long> findCelebrationsIdsByEventId(Long eventId);
     Set<Event> findByDate(LocalDate date);
 }

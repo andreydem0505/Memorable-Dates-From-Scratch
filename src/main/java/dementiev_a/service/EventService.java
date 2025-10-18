@@ -43,7 +43,8 @@ public class EventService implements Service {
     }
 
     public void deleteEventById(long id) {
-        eventRepository.findById(id).getCelebrationIds().forEach(celebrationRepository::deleteById);
+        Set<Long> celebrationIds = eventRepository.findById(id).getCelebrationIds();
+        celebrationRepository.deleteAllByIds(celebrationIds);
         eventRepository.deleteById(id);
     }
 
