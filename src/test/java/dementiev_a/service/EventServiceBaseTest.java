@@ -11,7 +11,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
-import java.util.Collection;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -44,22 +43,37 @@ public abstract class EventServiceBaseTest extends BaseTest {
 
     @Test
     void testAddEvent_WhenValidEvent_ThenSavedAndRetrievable() {
-        Event newYear = new Event("New Year", "New Year celebration", LocalDate.of(2026, 1, 1));
+        Event newYearEvent = new Event("New Year", "New Year celebration", LocalDate.of(2026, 1, 1));
 
-        eventService.addEvent(newYear);
+        eventService.addEvent(newYearEvent);
 
-        assertNotNull(newYear.getId(),
+        assertNotNull(newYearEvent.getId(),
                 "After adding an event, the event should receive a non-null id");
 
-        Event loaded = eventService.getEventById(newYear.getId());
-        assertEquals(newYear, loaded,
-                "getEventById should return the same Event instance that was added");
+        Event loadedEvent = eventService.getEventById(newYearEvent.getId());
+        assertEquals(newYearEvent.getId(), loadedEvent.getId(),
+                "getEventById should return event with the same id");
+        assertEquals(newYearEvent.getName(), loadedEvent.getName(),
+                "getEventById should return event with the same name");
 
         List<Event> allEvents = eventService.getAllEvents();
         assertEquals(1, allEvents.size(),
                 "getAllEvents should return a list containing the added event");
-        assertTrue(allEvents.contains(newYear),
+        assertTrue(allEvents.stream().anyMatch(e -> e.getId().equals(newYearEvent.getId())),
                 "getAllEvents result should include the newly added event");
+    }
+
+    @Test
+    void testAddEvent_WhenMultipleEvents_ThenAllRetrievable() {
+        Event firstEvent = new Event("Independence Day", "National holiday", LocalDate.of(2025, 7, 4));
+        Event secondEvent = new Event("Thanksgiving", "Family gathering", LocalDate.of(2025, 11, 27));
+
+        eventService.addEvent(firstEvent);
+        eventService.addEvent(secondEvent);
+
+        List<Event> allEvents = eventService.getAllEvents();
+        assertEquals(2, allEvents.size(),
+                "getAllEvents should return all added events");
     }
 
     @Test
@@ -70,40 +84,59 @@ public abstract class EventServiceBaseTest extends BaseTest {
     }
 
     @Test
+    void testGetAllEvents_WhenEmpty_ThenReturnEmptyList() {
+        List<Event> allEvents = eventService.getAllEvents();
+
+        assertTrue(allEvents.isEmpty(),
+                "getAllEvents should return empty list when repository is empty");
+    }
+
+    @Test
     void testGetEventsByDate_WhenSeveralEventsOnDate_ThenReturnMatchingEvents() {
-        LocalDate date = LocalDate.of(2023, 12, 31);
-        Event partyA = new Event("Office Party", "End of year party", date);
-        Event partyB = new Event("Family Dinner", "Family gathering", date);
-        Event other = new Event("Spring Festival", "April festival", LocalDate.of(2024, 4, 1));
+        LocalDate newYearsEve = LocalDate.of(2023, 12, 31);
+        Event officeParty = new Event("Office Party", "End of year party", newYearsEve);
+        Event familyDinner = new Event("Family Dinner", "Family gathering", newYearsEve);
+        Event springFestival = new Event("Spring Festival", "April festival", LocalDate.of(2024, 4, 1));
 
-        eventRepository.save(partyA);
-        eventRepository.save(partyB);
-        eventRepository.save(other);
+        eventRepository.save(officeParty);
+        eventRepository.save(familyDinner);
+        eventRepository.save(springFestival);
 
-        Collection<Event> found = eventService.getEventsByDate(date);
+        List<Event> foundEvents = eventService.getEventsByDate(newYearsEve);
 
-        assertEquals(2, found.size(),
+        assertEquals(2, foundEvents.size(),
                 "getEventsByDate should return only events scheduled on the requested date");
-        assertTrue(found.contains(partyA) && found.contains(partyB),
-                "Returned set should include both events scheduled on the requested date");
+        assertTrue(foundEvents.stream().allMatch(e -> e.getDate().equals(newYearsEve)),
+                "All returned events should have the requested date");
+    }
+
+    @Test
+    void testGetEventsByDate_WhenNoEventsOnDate_ThenReturnEmptyList() {
+        Event event = new Event("Some Event", "Description", LocalDate.of(2025, 1, 1));
+        eventRepository.save(event);
+
+        List<Event> foundEvents = eventService.getEventsByDate(LocalDate.of(2025, 12, 31));
+
+        assertTrue(foundEvents.isEmpty(),
+                "getEventsByDate should return empty list when no events match the date");
     }
 
     @Test
     void testGetCelebrationsByEventId_WhenEventHasCelebrations_ThenReturnCelebrations() {
-        Event conference = new Event("Conference", "Tech conference", LocalDate.of(2025, 10, 5));
-        Long eventId = eventRepository.save(conference);
+        Event techConference = new Event("Conference", "Tech conference", LocalDate.of(2025, 10, 5));
+        Long eventId = eventRepository.save(techConference);
 
-        Celebration breakfast = new Celebration(eventId, "Breakfast Meetup",
+        Celebration breakfastMeetup = new Celebration(eventId, "Breakfast Meetup",
                 "Morning networking breakfast", LocalDate.of(2025, 10, 5), "Lobby");
-        Celebration dinner = new Celebration(eventId, "Gala Dinner",
+        Celebration galaDinner = new Celebration(eventId, "Gala Dinner",
                 "Evening gala dinner", LocalDate.of(2025, 10, 5), "Grand Hall");
 
-        Long breakfastId = celebrationRepository.save(breakfast);
-        Long dinnerId = celebrationRepository.save(dinner);
+        Long breakfastId = celebrationRepository.save(breakfastMeetup);
+        Long dinnerId = celebrationRepository.save(galaDinner);
 
-        // Link celebrations to the event
-        conference.addCelebrationId(breakfastId);
-        conference.addCelebrationId(dinnerId);
+        techConference.addCelebrationId(breakfastId);
+        techConference.addCelebrationId(dinnerId);
+        eventRepository.save(techConference);
 
         List<Celebration> celebrations = eventService.getCelebrationsByEventId(eventId);
 
@@ -116,14 +149,14 @@ public abstract class EventServiceBaseTest extends BaseTest {
     }
 
     @Test
-    void testGetCelebrationsByEventId_WhenEventHasNoCelebrations_ThenReturnEmptySet() {
-        Event meetup = new Event("Meetup", "Community meetup", LocalDate.of(2024, 8, 20));
-        Long eventId = eventRepository.save(meetup);
+    void testGetCelebrationsByEventId_WhenEventHasNoCelebrations_ThenReturnEmptyList() {
+        Event communityMeetup = new Event("Meetup", "Community meetup", LocalDate.of(2024, 8, 20));
+        Long eventId = eventRepository.save(communityMeetup);
 
         List<Celebration> celebrations = eventService.getCelebrationsByEventId(eventId);
 
         assertTrue(celebrations.isEmpty(),
-                "When an event has no linked celebrations, getCelebrationsByEventId should return an empty set");
+                "When an event has no linked celebrations, getCelebrationsByEventId should return empty list");
     }
 
     @Test
@@ -135,33 +168,28 @@ public abstract class EventServiceBaseTest extends BaseTest {
 
     @Test
     void testDeleteEventById_WhenExists_ThenRemovedAndItsCelebrationsRemoved() {
-        Event symposium = new Event("Symposium", "Academic symposium", LocalDate.of(2025, 9, 1));
-        Long eventId = eventRepository.save(symposium);
+        Event academicSymposium = new Event("Symposium", "Academic symposium", LocalDate.of(2025, 9, 1));
+        Long eventId = eventRepository.save(academicSymposium);
 
-        // Create two celebrations linked to the event
-        Celebration morning = new Celebration(eventId, "Morning Session",
+        Celebration morningSession = new Celebration(eventId, "Morning Session",
                 "Opening talks", LocalDate.of(2025, 9, 1), "Hall A");
-        Celebration evening = new Celebration(eventId, "Evening Reception",
+        Celebration eveningReception = new Celebration(eventId, "Evening Reception",
                 "Networking reception", LocalDate.of(2025, 9, 1), "Lobby");
 
-        Long morningId = celebrationRepository.save(morning);
-        Long eveningId = celebrationRepository.save(evening);
+        Long morningId = celebrationRepository.save(morningSession);
+        Long eveningId = celebrationRepository.save(eveningReception);
 
-        // Link celebrations to the event and persist the event
-        symposium.addCelebrationId(morningId);
-        symposium.addCelebrationId(eveningId);
-        eventRepository.save(symposium);
+        academicSymposium.addCelebrationId(morningId);
+        academicSymposium.addCelebrationId(eveningId);
+        eventRepository.save(academicSymposium);
 
-        // Pre-conditions
         assertNotNull(eventRepository.findById(eventId),
                 "Event must exist before deletion");
         assertNotNull(celebrationRepository.findById(morningId),
                 "Linked celebration must exist before deletion of the event");
 
-        // Perform deletion
         eventService.deleteEventById(eventId);
 
-        // After deletion, event and linked celebrations should be removed
         assertThrows(NoEntityException.class,
                 () -> eventRepository.findById(eventId),
                 "After deleteEventById, finding the event by id should throw NoEntityException");
@@ -174,19 +202,83 @@ public abstract class EventServiceBaseTest extends BaseTest {
     }
 
     @Test
+    void testDeleteEventById_WhenNotExists_ThenThrowNoEntityException() {
+        assertThrows(NoEntityException.class,
+                () -> eventService.deleteEventById(77777L),
+                "deleteEventById should throw NoEntityException when event does not exist");
+    }
+
+    @Test
+    void testDeleteEventById_WhenNoCelebrations_ThenOnlyEventRemoved() {
+        Event simpleEvent = new Event("Simple Event", "Event without celebrations", LocalDate.of(2025, 6, 1));
+        Long eventId = eventRepository.save(simpleEvent);
+
+        eventService.deleteEventById(eventId);
+
+        assertThrows(NoEntityException.class,
+                () -> eventRepository.findById(eventId),
+                "Event should be deleted even when it has no celebrations");
+    }
+
+    @Test
     void testEditEvent_WhenValidFields_ThenEventUpdatedInRepository() {
-        Event meetup = new Event("Tech Meetup", "Monthly meetup", LocalDate.of(2025, 7, 10));
-        Long eventId = eventRepository.save(meetup);
+        Event techMeetup = new Event("Tech Meetup", "Monthly meetup", LocalDate.of(2025, 7, 10));
+        Long eventId = eventRepository.save(techMeetup);
 
         eventService.editEvent(eventId, "Tech Meetup - Updated",
                 "Monthly meetup with guest speaker", LocalDate.of(2025, 7, 11));
 
-        Event updated = eventRepository.findById(eventId);
-        assertEquals("Tech Meetup - Updated", updated.getName(),
+        Event updatedEvent = eventRepository.findById(eventId);
+        assertEquals("Tech Meetup - Updated", updatedEvent.getName(),
                 "After editEvent, event name should be updated in repository");
-        assertEquals("Monthly meetup with guest speaker", updated.getDescription(),
+        assertEquals("Monthly meetup with guest speaker", updatedEvent.getDescription(),
                 "After editEvent, event description should be updated in repository");
-        assertEquals(LocalDate.of(2025, 7, 11), updated.getDate(),
+        assertEquals(LocalDate.of(2025, 7, 11), updatedEvent.getDate(),
                 "After editEvent, event date should be updated in repository");
+    }
+
+    @Test
+    void testEditEvent_WhenNotExists_ThenThrowNoEntityException() {
+        assertThrows(NoEntityException.class,
+                () -> eventService.editEvent(66666L, "New Name",
+                        "New Description", LocalDate.of(2025, 1, 1)),
+                "editEvent should throw NoEntityException when event does not exist");
+    }
+
+    @Test
+    void testEditEvent_WhenChangingAllFields_ThenAllFieldsUpdated() {
+        Event workshopEvent = new Event("Workshop", "Basic workshop", LocalDate.of(2025, 8, 5));
+        Long eventId = eventRepository.save(workshopEvent);
+
+        eventService.editEvent(eventId, "Advanced Workshop",
+                "Advanced level workshop", LocalDate.of(2025, 8, 6));
+
+        Event updatedEvent = eventRepository.findById(eventId);
+        assertEquals("Advanced Workshop", updatedEvent.getName(),
+                "Name should be completely changed");
+        assertEquals("Advanced level workshop", updatedEvent.getDescription(),
+                "Description should be completely changed");
+        assertEquals(LocalDate.of(2025, 8, 6), updatedEvent.getDate(),
+                "Date should be completely changed");
+    }
+
+    @Test
+    void testEditEvent_WhenEventHasCelebrations_ThenCelebrationsRemainLinked() {
+        Event conference = new Event("Conference", "Annual conference", LocalDate.of(2025, 9, 10));
+        Long eventId = eventRepository.save(conference);
+
+        Celebration celebration = new Celebration(eventId, "Opening",
+                "Opening ceremony", LocalDate.of(2025, 9, 10), "Main Hall");
+        Long celebrationId = celebrationRepository.save(celebration);
+
+        conference.addCelebrationId(celebrationId);
+        eventRepository.save(conference);
+
+        eventService.editEvent(eventId, "Updated Conference",
+                "Updated annual conference", LocalDate.of(2025, 9, 11));
+
+        Event updatedEvent = eventRepository.findById(eventId);
+        assertTrue(updatedEvent.getCelebrationIds().contains(celebrationId),
+                "After editing event, celebration links should remain intact");
     }
 }

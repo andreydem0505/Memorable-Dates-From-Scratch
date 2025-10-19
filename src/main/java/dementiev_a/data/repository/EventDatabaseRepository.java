@@ -30,10 +30,11 @@ public class EventDatabaseRepository implements EventRepository {
         Connection connection = PostgresManager.getInstance().getConnection();
         try {
             statement = connection.createStatement();
-            ResultSet result = statement.executeQuery("SELECT MAX(id) FROM events");
-            if (result.next()) {
-                long maxId = result.getLong(1);
-                sequence.setValue(maxId + 1);
+            try (ResultSet result = statement.executeQuery("SELECT MAX(id) FROM events")) {
+                if (result.next()) {
+                    long maxId = result.getLong(1);
+                    sequence.setValue(maxId + 1);
+                }
             }
             saveEventStatement = connection.prepareStatement(
                     "INSERT INTO events (id, name, description, date) VALUES (?, ?, ?, ?) ON CONFLICT (id) DO UPDATE SET " +
@@ -73,8 +74,9 @@ public class EventDatabaseRepository implements EventRepository {
                 throw new NoEntityException(ENTITY_NAME, String.valueOf(eventId));
             }
             findCelebrationsIdsByEventIdStatement.setLong(1, eventId);
-            ResultSet celebrationsResult = findCelebrationsIdsByEventIdStatement.executeQuery();
-            return extractCelebrationIds(celebrationsResult);
+            try (ResultSet celebrationsResult = findCelebrationsIdsByEventIdStatement.executeQuery()) {
+                return extractCelebrationIds(celebrationsResult);
+            }
         } catch (SQLException e) {
             IO.printError("Error while retrieving celebration IDs from database");
             return Set.of();
@@ -85,8 +87,9 @@ public class EventDatabaseRepository implements EventRepository {
     public List<Event> findByDate(LocalDate date) {
         try {
             findEventsByDateStatement.setDate(1, Date.valueOf(date));
-            ResultSet result = findEventsByDateStatement.executeQuery();
-            return extractEvents(result);
+            try (ResultSet result = findEventsByDateStatement.executeQuery()) {
+                return extractEvents(result);
+            }
         } catch (SQLException e) {
             IO.printError("Error while retrieving the events from database");
             return List.of();
@@ -97,12 +100,13 @@ public class EventDatabaseRepository implements EventRepository {
     public Event findById(Long id) {
         try {
             findEventByIdStatement.setLong(1, id);
-            ResultSet result = findEventByIdStatement.executeQuery();
-            List<Event> events = extractEvents(result);
-            if (events.isEmpty()) {
-                throw new NoEntityException(ENTITY_NAME, String.valueOf(id));
+            try (ResultSet result = findEventByIdStatement.executeQuery()) {
+                List<Event> events = extractEvents(result);
+                if (events.isEmpty()) {
+                    throw new NoEntityException(ENTITY_NAME, String.valueOf(id));
+                }
+                return events.iterator().next();
             }
-            return events.iterator().next();
         } catch (SQLException e) {
             IO.printError("Error while retrieving the event from database");
             return null;
@@ -111,10 +115,9 @@ public class EventDatabaseRepository implements EventRepository {
 
     @Override
     public List<Event> findAll() {
-        try {
-            ResultSet result = statement.executeQuery(
-                    "SELECT * FROM events LEFT JOIN events_celebrations ON events.id = events_celebrations.eventId"
-            );
+        try (ResultSet result = statement.executeQuery(
+                "SELECT * FROM events LEFT JOIN events_celebrations ON events.id = events_celebrations.eventId"
+        )) {
             return extractEvents(result);
         } catch (SQLException e) {
             IO.printError("Error while retrieving events from database");

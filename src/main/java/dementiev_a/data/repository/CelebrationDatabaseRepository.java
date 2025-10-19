@@ -27,10 +27,11 @@ public class CelebrationDatabaseRepository implements CelebrationRepository {
         Connection connection = PostgresManager.getInstance().getConnection();
         try {
             statement = connection.createStatement();
-            ResultSet result = statement.executeQuery("SELECT MAX(id) FROM celebrations");
-            if (result.next()) {
-                long maxId = result.getLong(1);
-                sequence.setValue(maxId + 1);
+            try (ResultSet result = statement.executeQuery("SELECT MAX(id) FROM celebrations")) {
+                if (result.next()) {
+                    long maxId = result.getLong(1);
+                    sequence.setValue(maxId + 1);
+                }
             }
             saveCelebrationStatement = connection.prepareStatement(
                     "INSERT INTO celebrations (id, name, description, date, place) VALUES (?, ?, ?, ?, ?) " +
@@ -62,12 +63,11 @@ public class CelebrationDatabaseRepository implements CelebrationRepository {
         if (dividedIds.isEmpty()) {
             return List.of();
         }
-        try {
-            ResultSet result = statement.executeQuery(
-                    ("SELECT * FROM celebrations LEFT JOIN events_celebrations " +
-                            "ON celebrations.id = events_celebrations.celebrationId WHERE id IN (%s)")
-                            .formatted(dividedIds)
-            );
+        try (ResultSet result = statement.executeQuery(
+                ("SELECT * FROM celebrations LEFT JOIN events_celebrations " +
+                        "ON celebrations.id = events_celebrations.celebrationId WHERE id IN (%s)")
+                        .formatted(dividedIds)
+        )) {
             return extractCelebrations(result);
         } catch (SQLException e) {
             IO.printError("Error while retrieving the celebrations from database");
@@ -90,12 +90,13 @@ public class CelebrationDatabaseRepository implements CelebrationRepository {
     public Celebration findById(Long id) {
         try {
             findCelebrationByIdStatement.setLong(1, id);
-            ResultSet result = findCelebrationByIdStatement.executeQuery();
-            List<Celebration> celebrations = extractCelebrations(result);
-            if (celebrations.isEmpty()) {
-                throw new NoEntityException(ENTITY_NAME, String.valueOf(id));
+            try (ResultSet result = findCelebrationByIdStatement.executeQuery()) {
+                List<Celebration> celebrations = extractCelebrations(result);
+                if (celebrations.isEmpty()) {
+                    throw new NoEntityException(ENTITY_NAME, String.valueOf(id));
+                }
+                return celebrations.iterator().next();
             }
-            return celebrations.iterator().next();
         } catch (SQLException e) {
             IO.printError("Error while retrieving the celebration from database");
             return null;
@@ -104,11 +105,10 @@ public class CelebrationDatabaseRepository implements CelebrationRepository {
 
     @Override
     public List<Celebration> findAll() {
-        try {
-            ResultSet result = statement.executeQuery(
-                    "SELECT * FROM celebrations LEFT JOIN events_celebrations " +
-                            "ON celebrations.id = events_celebrations.celebrationId"
-            );
+        try (ResultSet result = statement.executeQuery(
+                "SELECT * FROM celebrations LEFT JOIN events_celebrations " +
+                        "ON celebrations.id = events_celebrations.celebrationId"
+        )) {
             return extractCelebrations(result);
         } catch (SQLException e) {
             IO.printError("Error while retrieving celebrations from database");
