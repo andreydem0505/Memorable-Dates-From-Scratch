@@ -1,5 +1,6 @@
 package dementiev_a.data.repository;
 
+import dementiev_a.BaseTest;
 import dementiev_a.data.model.Event;
 import dementiev_a.exception.NoEntityException;
 import org.junit.jupiter.api.BeforeEach;
@@ -7,14 +8,14 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
 import java.util.Collection;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public abstract class EventRepositoryTestBase {
+public abstract class EventRepositoryTestBase extends BaseTest {
+
     protected EventRepository repository;
 
     protected abstract EventRepository createRepository();

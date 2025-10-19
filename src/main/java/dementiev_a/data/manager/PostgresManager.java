@@ -2,6 +2,7 @@ package dementiev_a.data.manager;
 
 import dementiev_a.io.IO;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
@@ -11,12 +12,15 @@ public class PostgresManager implements DatabaseManager {
     @Getter(lazy = true)
     private static final PostgresManager instance = new PostgresManager();
 
+    @Setter
+    private static String dbName = "memorable_dates";
+
     private Connection connection;
 
     private PostgresManager() {
         try {
             connection = DriverManager.getConnection(
-                    "jdbc:postgresql://localhost:5432/memorable_dates", "postgres", "qwerty123"
+                    "jdbc:postgresql://localhost:5432/" + dbName, "postgres", "qwerty123"
             );
             connection.createStatement()
                     .execute(

@@ -16,7 +16,7 @@ public class CelebrationInMemoryRepository implements CelebrationRepository {
 
     private static final String ENTITY_NAME = "Celebration";
 
-    private final Map<Long, Celebration> storage = new HashMap<>();
+    private final Map<Long, Celebration> storage = new TreeMap<>();
     private final CelebrationSequence celebrationSequence = CelebrationSequence.getInstance();
 
     @Override
@@ -29,8 +29,8 @@ public class CelebrationInMemoryRepository implements CelebrationRepository {
     }
 
     @Override
-    public Set<Celebration> findAll() {
-        return new HashSet<>(storage.values());
+    public List<Celebration> findAll() {
+        return new ArrayList<>(storage.values());
     }
 
     @Override
@@ -53,8 +53,8 @@ public class CelebrationInMemoryRepository implements CelebrationRepository {
     }
 
     @Override
-    public Set<Celebration> findAllByIds(Collection<Long> ids) {
-        Set<Celebration> result = new HashSet<>();
+    public List<Celebration> findAllByIds(Collection<Long> ids) {
+        List<Celebration> result = new ArrayList<>();
         ids.forEach(id -> {
             if (storage.containsKey(id)) {
                 result.add(storage.get(id));

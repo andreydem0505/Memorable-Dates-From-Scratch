@@ -1,32 +1,45 @@
 package dementiev_a.service;
 
+import dementiev_a.BaseTest;
 import dementiev_a.data.model.Celebration;
 import dementiev_a.data.model.Event;
-import dementiev_a.data.repository.CelebrationInMemoryRepository;
-import dementiev_a.data.repository.EventInMemoryRepository;
+import dementiev_a.data.repository.CelebrationRepository;
+import dementiev_a.data.repository.EventRepository;
 import dementiev_a.exception.NoEntityException;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDate;
+import java.util.Collection;
 import java.util.List;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class EventServiceTest {
+public abstract class EventServiceBaseTest extends BaseTest {
 
     private EventService eventService;
-    private EventInMemoryRepository eventRepository;
-    private CelebrationInMemoryRepository celebrationRepository;
+    private EventRepository eventRepository;
+    private CelebrationRepository celebrationRepository;
+
+    protected abstract EventRepository getEventRepository();
+    protected abstract CelebrationRepository getCelebrationRepository();
 
     @BeforeEach
     void setUp() {
-        eventRepository = EventInMemoryRepository.getInstance();
-        celebrationRepository = CelebrationInMemoryRepository.getInstance();
+        eventRepository = getEventRepository();
+        celebrationRepository = getCelebrationRepository();
+        eventService = EventService.getInstance();
+        eventService.setEventRepository(eventRepository);
+        eventService.setCelebrationRepository(celebrationRepository);
         eventRepository.deleteAll();
         celebrationRepository.deleteAll();
-        eventService = EventService.getInstance();
+    }
+
+    @AfterEach
+    void tearDown() {
+        eventRepository.deleteAll();
+        celebrationRepository.deleteAll();
     }
 
     @Test
@@ -39,7 +52,7 @@ public class EventServiceTest {
                 "After adding an event, the event should receive a non-null id");
 
         Event loaded = eventService.getEventById(newYear.getId());
-        assertSame(newYear, loaded,
+        assertEquals(newYear, loaded,
                 "getEventById should return the same Event instance that was added");
 
         List<Event> allEvents = eventService.getAllEvents();
@@ -67,7 +80,7 @@ public class EventServiceTest {
         eventRepository.save(partyB);
         eventRepository.save(other);
 
-        Set<Event> found = eventService.getEventsByDate(date);
+        Collection<Event> found = eventService.getEventsByDate(date);
 
         assertEquals(2, found.size(),
                 "getEventsByDate should return only events scheduled on the requested date");
@@ -92,7 +105,7 @@ public class EventServiceTest {
         conference.addCelebrationId(breakfastId);
         conference.addCelebrationId(dinnerId);
 
-        Set<Celebration> celebrations = eventService.getCelebrationsByEventId(eventId);
+        List<Celebration> celebrations = eventService.getCelebrationsByEventId(eventId);
 
         assertEquals(2, celebrations.size(),
                 "getCelebrationsByEventId should return all celebrations linked to the event");
@@ -107,7 +120,7 @@ public class EventServiceTest {
         Event meetup = new Event("Meetup", "Community meetup", LocalDate.of(2024, 8, 20));
         Long eventId = eventRepository.save(meetup);
 
-        Set<Celebration> celebrations = eventService.getCelebrationsByEventId(eventId);
+        List<Celebration> celebrations = eventService.getCelebrationsByEventId(eventId);
 
         assertTrue(celebrations.isEmpty(),
                 "When an event has no linked celebrations, getCelebrationsByEventId should return an empty set");

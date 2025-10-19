@@ -2,11 +2,11 @@ package dementiev_a.service;
 
 import dementiev_a.data.model.Celebration;
 import dementiev_a.data.model.Event;
-import dementiev_a.data.repository.CelebrationInMemoryRepository;
-import dementiev_a.data.repository.EventInMemoryRepository;
+import dementiev_a.data.repository.*;
 import lombok.AccessLevel;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.time.LocalDate;
 
@@ -15,8 +15,10 @@ public class CelebrationService implements Service {
     @Getter(lazy = true)
     private static final CelebrationService instance = new CelebrationService();
 
-    private final EventInMemoryRepository eventRepository = EventInMemoryRepository.getInstance();
-    private final CelebrationInMemoryRepository celebrationRepository = CelebrationInMemoryRepository.getInstance();
+    @Setter
+    private EventRepository eventRepository = EventDatabaseRepository.getInstance();
+    @Setter
+    private CelebrationRepository celebrationRepository = CelebrationDatabaseRepository.getInstance();
 
     public void addCelebration(long eventId, String name, String description, LocalDate date, String place) {
         Long celebrationId = celebrationRepository.save(new Celebration(eventId, name, description, date, place));

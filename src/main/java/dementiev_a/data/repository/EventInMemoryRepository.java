@@ -9,14 +9,13 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class EventInMemoryRepository implements EventRepository {
     @Getter(lazy = true)
     private static final EventInMemoryRepository instance = new EventInMemoryRepository();
 
-    private final Map<Long, Event> storage = new HashMap<>();
+    private final Map<Long, Event> storage = new TreeMap<>();
     private final EventSequence eventSequence = EventSequence.getInstance();
 
     @Override
@@ -29,8 +28,8 @@ public class EventInMemoryRepository implements EventRepository {
     }
 
     @Override
-    public Set<Event> findAll() {
-        return new HashSet<>(storage.values());
+    public List<Event> findAll() {
+        return new ArrayList<>(storage.values());
     }
 
     @Override
@@ -65,9 +64,9 @@ public class EventInMemoryRepository implements EventRepository {
     }
 
     @Override
-    public Set<Event> findByDate(LocalDate date) {
+    public List<Event> findByDate(LocalDate date) {
         return storage.values().stream()
                 .filter(event -> event.getDate().equals(date))
-                .collect(Collectors.toSet());
+                .toList();
     }
 }

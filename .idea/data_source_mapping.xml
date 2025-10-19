@@ -2,5 +2,7 @@
 <project version="4">
   <component name="DataSourcePerFileMappings">
     <file url="file://$APPLICATION_CONFIG_DIR$/consoles/db/0cc039b8-ce53-4446-a881-201d5797b2a2/console.sql" value="0cc039b8-ce53-4446-a881-201d5797b2a2" />
+    <file url="file://$APPLICATION_CONFIG_DIR$/consoles/db/b113e610-6138-418c-bcd8-834a44bdd53c/console.sql" value="b113e610-6138-418c-bcd8-834a44bdd53c" />
+    <file url="file://$PROJECT_DIR$/src/main/java/dementiev_a/data/repository/CelebrationDatabaseRepository.java" value="0cc039b8-ce53-4446-a881-201d5797b2a2" />
   </component>
 </project>

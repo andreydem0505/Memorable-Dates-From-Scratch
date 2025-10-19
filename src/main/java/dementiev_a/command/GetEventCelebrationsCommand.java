@@ -6,6 +6,7 @@ import dementiev_a.io.IO;
 import dementiev_a.service.EventService;
 import dementiev_a.utils.DateUtils;
 
+import java.util.List;
 import java.util.Set;
 
 public class GetEventCelebrationsCommand implements Command {
@@ -17,7 +18,7 @@ public class GetEventCelebrationsCommand implements Command {
     @Override
     public void execute() {
         long eventId;
-        Set<Celebration> celebrations;
+        List<Celebration> celebrations;
         try {
             eventId = Long.parseLong(IO.readLine("Input event ID:"));
             celebrations = EventService.getInstance().getCelebrationsByEventId(eventId);

@@ -16,7 +16,7 @@ public class EventDatabaseRepository implements EventRepository {
     @Getter(lazy = true)
     private static final EventDatabaseRepository instance = new EventDatabaseRepository();
 
-    private final EventSequence eventSequence = EventSequence.getInstance();
+    private final EventSequence sequence = EventSequence.getInstance();
     private Statement statement;
     private PreparedStatement saveEventStatement;
     private PreparedStatement saveCelebrationToEventStatement;
@@ -30,14 +30,22 @@ public class EventDatabaseRepository implements EventRepository {
         Connection connection = PostgresManager.getInstance().getConnection();
         try {
             statement = connection.createStatement();
+            ResultSet result = statement.executeQuery("SELECT MAX(id) FROM events");
+            if (result.next()) {
+                long maxId = result.getLong(1);
+                sequence.setValue(maxId + 1);
+            }
             saveEventStatement = connection.prepareStatement(
-                    "INSERT INTO events (id, name, description, date) VALUES (?, ?, ?, ?)"
+                    "INSERT INTO events (id, name, description, date) VALUES (?, ?, ?, ?) ON CONFLICT (id) DO UPDATE SET " +
+                            "name = EXCLUDED.name, description = EXCLUDED.description, date = EXCLUDED.date"
             );
             saveCelebrationToEventStatement = connection.prepareStatement(
-                    "INSERT INTO events_celebrations (celebrationId, eventId) VALUES (?, ?)"
+                    "INSERT INTO events_celebrations (celebrationId, eventId) VALUES (?, ?) " +
+                            "ON CONFLICT (celebrationId) DO NOTHING"
             );
             findEventByIdStatement = connection.prepareStatement(
-                    "SELECT * FROM events WHERE id = ?"
+                    "SELECT * FROM events LEFT JOIN events_celebrations ON events.id = events_celebrations.eventId " +
+                            "WHERE id = ?"
             );
             findCelebrationsIdsByEventIdStatement = connection.prepareStatement(
                     "SELECT celebrationId FROM events_celebrations WHERE eventId = ?"
@@ -74,14 +82,14 @@ public class EventDatabaseRepository implements EventRepository {
     }
 
     @Override
-    public Set<Event> findByDate(LocalDate date) {
+    public List<Event> findByDate(LocalDate date) {
         try {
             findEventsByDateStatement.setDate(1, Date.valueOf(date));
             ResultSet result = findEventsByDateStatement.executeQuery();
             return extractEvents(result);
         } catch (SQLException e) {
             IO.printError("Error while retrieving the events from database");
-            return Set.of();
+            return List.of();
         }
     }
 
@@ -89,20 +97,12 @@ public class EventDatabaseRepository implements EventRepository {
     public Event findById(Long id) {
         try {
             findEventByIdStatement.setLong(1, id);
-            ResultSet eventResult = findEventByIdStatement.executeQuery();
-            if (!eventResult.next()) {
+            ResultSet result = findEventByIdStatement.executeQuery();
+            List<Event> events = extractEvents(result);
+            if (events.isEmpty()) {
                 throw new NoEntityException(ENTITY_NAME, String.valueOf(id));
             }
-            findCelebrationsIdsByEventIdStatement.setLong(1, id);
-            ResultSet celebrationsResult = findCelebrationsIdsByEventIdStatement.executeQuery();
-            Set<Long> celebrationsIds = extractCelebrationIds(celebrationsResult);
-            return new Event(
-                    id,
-                    eventResult.getString("name"),
-                    eventResult.getString("description"),
-                    eventResult.getDate("date").toLocalDate(),
-                    celebrationsIds
-            );
+            return events.iterator().next();
         } catch (SQLException e) {
             IO.printError("Error while retrieving the event from database");
             return null;
@@ -110,7 +110,7 @@ public class EventDatabaseRepository implements EventRepository {
     }
 
     @Override
-    public Set<Event> findAll() {
+    public List<Event> findAll() {
         try {
             ResultSet result = statement.executeQuery(
                     "SELECT * FROM events LEFT JOIN events_celebrations ON events.id = events_celebrations.eventId"
@@ -118,14 +118,14 @@ public class EventDatabaseRepository implements EventRepository {
             return extractEvents(result);
         } catch (SQLException e) {
             IO.printError("Error while retrieving events from database");
-            return Set.of();
+            return List.of();
         }
     }
 
     @Override
     public Long save(Event entity) {
         if (entity.getId() == null) {
-            entity.setId(eventSequence.next());
+            entity.setId(sequence.next());
         }
         try {
             saveEventStatement.setLong(1, entity.getId());
@@ -133,6 +133,8 @@ public class EventDatabaseRepository implements EventRepository {
             saveEventStatement.setString(3, entity.getDescription());
             saveEventStatement.setDate(4, Date.valueOf(entity.getDate()));
             saveEventStatement.executeUpdate();
+            deleteEventCelebrationsByEventIdStatement.setLong(1, entity.getId());
+            deleteEventCelebrationsByEventIdStatement.executeUpdate();
             for (long celebrationId : entity.getCelebrationIds()) {
                 saveCelebrationToEventStatement.setLong(1, celebrationId);
                 saveCelebrationToEventStatement.setLong(2, entity.getId());
@@ -148,9 +150,6 @@ public class EventDatabaseRepository implements EventRepository {
     @Override
     public void deleteById(Long id) {
         try {
-            findCelebrationsIdsByEventIdStatement.setLong(1, id);
-            ResultSet celebrationsResult = findCelebrationsIdsByEventIdStatement.executeQuery();
-            Set<Long> celebrationIds = extractCelebrationIds(celebrationsResult);
             deleteEventStatement.setLong(1, id);
             int affectedRows = deleteEventStatement.executeUpdate();
             if (affectedRows == 0) {
@@ -158,11 +157,6 @@ public class EventDatabaseRepository implements EventRepository {
             }
             deleteEventCelebrationsByEventIdStatement.setLong(1, id);
             deleteEventCelebrationsByEventIdStatement.executeUpdate();
-            statement.executeUpdate("DELETE FROM celebrations WHERE id IN (%s)"
-                    .formatted(String.join(
-                            ",",
-                            celebrationIds.stream().map(String::valueOf).toArray(String[]::new)
-                    )));
         } catch (SQLException e) {
             IO.printError("Error while deleting the event from database");
         }
@@ -173,7 +167,6 @@ public class EventDatabaseRepository implements EventRepository {
         try {
             statement.executeUpdate("DELETE FROM events");
             statement.executeUpdate("DELETE FROM events_celebrations");
-            statement.executeUpdate("DELETE FROM celebrations");
         } catch (SQLException e) {
             IO.printError("Error while deleting events from database");
         }
@@ -187,8 +180,8 @@ public class EventDatabaseRepository implements EventRepository {
         return celebrationIds;
     }
 
-    private Set<Event> extractEvents(ResultSet result) throws SQLException {
-        Map<Long, Event> map = new HashMap<>();
+    private List<Event> extractEvents(ResultSet result) throws SQLException {
+        Map<Long, Event> map = new TreeMap<>();
         while (result.next()) {
             Long eventId = result.getLong("id");
             long celebrationId = result.getLong("celebrationId");
@@ -205,6 +198,6 @@ public class EventDatabaseRepository implements EventRepository {
                 map.get(eventId).addCelebrationId(celebrationId);
             }
         }
-        return new HashSet<>(map.values());
+        return new ArrayList<>(map.values());
     }
 }

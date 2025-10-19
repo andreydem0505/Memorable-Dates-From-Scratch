@@ -1,10 +1,12 @@
 package dementiev_a.service;
 
+import dementiev_a.BaseTest;
 import dementiev_a.data.model.Celebration;
 import dementiev_a.data.model.Event;
-import dementiev_a.data.repository.CelebrationInMemoryRepository;
-import dementiev_a.data.repository.EventInMemoryRepository;
+import dementiev_a.data.repository.CelebrationRepository;
+import dementiev_a.data.repository.EventRepository;
 import dementiev_a.exception.NoEntityException;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -13,19 +15,30 @@ import java.util.Collection;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class CelebrationServiceTest {
+public abstract class CelebrationServiceBaseTest extends BaseTest {
 
     private CelebrationService celebrationService;
-    private EventInMemoryRepository eventRepository;
-    private CelebrationInMemoryRepository celebrationRepository;
+    private EventRepository eventRepository;
+    private CelebrationRepository celebrationRepository;
+
+    protected abstract EventRepository getEventRepository();
+    protected abstract CelebrationRepository getCelebrationRepository();
 
     @BeforeEach
     void setUp() {
-        eventRepository = EventInMemoryRepository.getInstance();
-        celebrationRepository = CelebrationInMemoryRepository.getInstance();
+        eventRepository = getEventRepository();
+        celebrationRepository = getCelebrationRepository();
+        celebrationService = CelebrationService.getInstance();
+        celebrationService.setEventRepository(eventRepository);
+        celebrationService.setCelebrationRepository(celebrationRepository);
         eventRepository.deleteAll();
         celebrationRepository.deleteAll();
-        celebrationService = CelebrationService.getInstance();
+    }
+
+    @AfterEach
+    void tearDown() {
+        eventRepository.deleteAll();
+        celebrationRepository.deleteAll();
     }
 
     @Test
@@ -130,7 +143,7 @@ public class CelebrationServiceTest {
         Celebration stored = celebrationRepository.findAll().iterator().next();
         Celebration fetched = celebrationService.getCelebrationById(stored.getId());
 
-        assertSame(stored, fetched,
+        assertEquals(stored, fetched,
                 "getCelebrationById should return the same Celebration instance stored in repository");
     }
 
