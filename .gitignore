@@ -4,6 +4,8 @@ build/
 !**/src/main/**/build/
 !**/src/test/**/build/
 gradle.properties
+src/main/resources/application.properties
+src/test/resources/test.properties
 
 ### IntelliJ IDEA ###
 .idea/modules.xml

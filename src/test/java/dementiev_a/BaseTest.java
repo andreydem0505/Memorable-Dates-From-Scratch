@@ -6,6 +6,6 @@ import org.junit.jupiter.api.BeforeAll;
 public class BaseTest {
     @BeforeAll
     static void init() {
-        PostgresManager.setDbName("memorable_dates_test");
+        PostgresManager.setResourceName("test");
     }
 }

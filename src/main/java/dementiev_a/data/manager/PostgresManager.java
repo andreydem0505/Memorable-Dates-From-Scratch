@@ -7,21 +7,24 @@ import lombok.Setter;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.ResourceBundle;
 
 public class PostgresManager implements DatabaseManager {
     @Getter(lazy = true)
     private static final PostgresManager instance = new PostgresManager();
 
     @Setter
-    private static String dbName = "memorable_dates";
+    private static String resourceName = "application";
 
     private Connection connection;
 
     private PostgresManager() {
         try {
-            connection = DriverManager.getConnection(
-                    "jdbc:postgresql://localhost:5432/" + dbName, "postgres", "qwerty123"
-            );
+            ResourceBundle rb = ResourceBundle.getBundle(resourceName);
+            String url = rb.getString("DATABASE_URL");
+            String user = rb.getString("DATABASE_USER");
+            String password = rb.getString("DATABASE_PASSWORD");
+            connection = DriverManager.getConnection(url, user, password);
             connection.createStatement()
                     .execute(
                             "CREATE TABLE IF NOT EXISTS events (" +
