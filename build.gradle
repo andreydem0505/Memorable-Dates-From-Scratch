@@ -1,5 +1,7 @@
 plugins {
     id "application"
+    id "war"
+    id 'org.gretty' version '4.1.0'
 }
 
 group = 'dementiev_a'
@@ -12,17 +14,30 @@ repositories {
 dependencies {
     compileOnly 'org.projectlombok:lombok:1.18.40'
     annotationProcessor 'org.projectlombok:lombok:1.18.40'
-    implementation 'org.postgresql:postgresql:42.6.0'
+    implementation 'org.postgresql:postgresql:42.7.7'
+
+    compileOnly 'jakarta.servlet:jakarta.servlet-api:5.0.0'
 
     testImplementation platform('org.junit:junit-bom:5.10.0')
     testImplementation 'org.junit.jupiter:junit-jupiter'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testCompileOnly 'org.projectlombok:lombok:1.18.40'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.40'
-    testImplementation 'org.postgresql:postgresql:42.6.0'
+    testImplementation 'org.postgresql:postgresql:42.7.7'
 }
 
 apply plugin : "java"
+
+// Настройка WAR
+war {
+    archiveFileName = "${project.name}.war"
+}
+
+gretty {
+    servletContainer = 'tomcat10'
+    httpPort = 8081
+    contextPath = '/'
+}
 
 ext {
     javaMainClass = "dementiev_a.Main"
