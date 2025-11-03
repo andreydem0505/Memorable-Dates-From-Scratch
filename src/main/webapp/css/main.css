@@ -75,11 +75,11 @@ a {
     padding: .2rem 0;
 }
 
-.marks-list {
+.celebrations-list {
     margin: .2rem 0;
 }
 
-.marks-list li {
+.celebrations-list li {
     padding: .5rem 0;
 }
 
@@ -128,12 +128,12 @@ textarea {
     display: inline-flex;
     align-items: center;
     justify-content: center;
+    transition: .3s;
 }
 
 .btn-primary {
     background: #304087;
     color: white;
-    transition: .3s;
 }
 
 .btn-primary:hover {
@@ -145,6 +145,19 @@ textarea {
     background: #f0f0f0;
     color: #333;
     border: 1px solid #e0e0e0;
+}
+
+.btn-secondary:hover {
+    background: #b5b1b1;
+}
+
+.btn-danger {
+    background: #e04b4b;
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #e86f6f;
 }
 
 .info {
@@ -174,4 +187,5 @@ textarea {
     display: flex;
     justify-content: flex-end;
     margin-bottom: 1rem;
+    gap: 10px;
 }

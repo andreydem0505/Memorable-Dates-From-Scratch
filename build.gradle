@@ -35,7 +35,7 @@ war {
 
 gretty {
     servletContainer = 'tomcat10'
-    httpPort = 8081
+    httpPort = 8080
     contextPath = '/'
 }
 

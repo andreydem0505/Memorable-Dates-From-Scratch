@@ -7,7 +7,6 @@ import dementiev_a.service.EventService;
 import dementiev_a.utils.DateUtils;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -16,8 +15,8 @@ import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 
-@WebServlet("/events")
-public class EventServlet extends HttpServlet {
+@WebServlet("")
+public class EventServlet extends Servlet {
     private EventService eventService;
 
     @Override
@@ -68,7 +67,7 @@ public class EventServlet extends HttpServlet {
                 eventService.editEvent(Long.parseLong(idStr), name, description, date);
             }
 
-            resp.sendRedirect(req.getContextPath() + "/events");
+            resp.sendRedirect(req.getContextPath() + "/");
             return;
 
         } catch (DateTimeParseException e) {
@@ -85,7 +84,8 @@ public class EventServlet extends HttpServlet {
         req.getRequestDispatcher("/jsp/upsert-event.jsp").forward(req, resp);
     }
 
-    private void editEvent(HttpServletRequest req, HttpServletResponse resp, Long eventId) throws IOException, ServletException {
+    private void editEvent(HttpServletRequest req, HttpServletResponse resp, Long eventId)
+            throws IOException, ServletException {
         Event event = eventService.getEventById(eventId);
         if (event == null) {
             resp.sendError(HttpServletResponse.SC_NOT_FOUND, "Event not found");
@@ -124,7 +124,7 @@ public class EventServlet extends HttpServlet {
     private void deleteEvent(HttpServletRequest req, HttpServletResponse resp, long eventId) throws IOException {
         try {
             eventService.deleteEventById(eventId);
-            resp.sendRedirect(req.getContextPath() + "/events");
+            resp.sendRedirect(req.getContextPath() + "/");
         } catch (NumberFormatException e) {
             resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "Incorrect event ID");
         }

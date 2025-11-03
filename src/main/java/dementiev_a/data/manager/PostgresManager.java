@@ -58,7 +58,9 @@ public class PostgresManager implements DatabaseManager {
     @Override
     public void closeConnection() {
         try {
-            connection.close();
+            if (!connection.isClosed()) {
+                connection.close();
+            }
         } catch (SQLException e) {
             System.out.println("Exception during closing connection");
         }

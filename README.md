@@ -1,6 +1,10 @@
-### Launch on Windows:
+### Launch console application:
 ```
 gradlew run
+```
+### Launch servlets:
+```
+gradlew appRun
 ```
 ### Tests launch:
 ```

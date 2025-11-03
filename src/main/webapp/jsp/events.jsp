@@ -12,7 +12,7 @@
 <body>
 <div class="container">
     <div class="top-actions">
-        <a class="btn btn-primary" href="<%= request.getContextPath() %>/events?action=add">➕ Add new event</a>
+        <a class="btn btn-primary" href="<%= request.getContextPath() %>/?action=add">➕ Add new event</a>
     </div>
     <h1>📅 Memorable Events</h1>
     <%
@@ -32,7 +32,7 @@
                     <th>Name</th>
                     <th>Description</th>
                     <th>Date</th>
-                    <th>Marks</th>
+                    <th>Celebrations</th>
                     <th>Actions</th>
                 </tr>
                 </thead>
@@ -50,17 +50,18 @@
                         <td><%= event.getCelebrationIds().size() %></td>
                         <td>
                             <div>
-                                <a class="info" href="<%= request.getContextPath() %>/events?action=view&id=<%= event.getId() %>">
+                                <a class="info" href="<%= request.getContextPath() %>/?action=view&id=<%= event.getId() %>">
                                     🔍 See more
                                 </a>
                             </div>
                             <div>
-                                <a class="info" href="<%= request.getContextPath() %>/events?action=edit&id=<%= event.getId() %>">
+                                <a class="info" href="<%= request.getContextPath() %>/?action=edit&id=<%= event.getId() %>">
                                     ✏️ Edit
                                 </a>
                             </div>
                             <div>
-                                <a class="danger" href="<%= request.getContextPath() %>/events?action=delete&id=<%= event.getId() %>" onclick="return confirm('Are you sure you want to delete this event?');">
+                                <a class="danger" href="<%= request.getContextPath() %>/?action=delete&id=<%= event.getId() %>"
+                                   onclick="return confirm('Are you sure you want to delete this event?');">
                                     🗑️ Delete
                                 </a>
                             </div>

@@ -7,7 +7,6 @@ import dementiev_a.service.EventService;
 import dementiev_a.utils.DateUtils;
 
 import java.util.List;
-import java.util.Set;
 
 public class GetEventCelebrationsCommand implements Command {
     @Override
